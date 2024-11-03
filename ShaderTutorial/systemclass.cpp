@@ -151,6 +151,10 @@ bool SystemClass::Frame()
 	{
 		m_Graphics->SetBackgroundColor(0.0f, 0.0f, 1.0f);
 	}
+	else if (m_Input->IsKeyDown('F'))
+	{
+		m_Graphics->SetBackgroundColor(0.0f, 0.0f, 0.0f);
+	}
 
 	if (m_Input->IsKeyDown('W'))
 	{
@@ -182,6 +186,18 @@ bool SystemClass::Frame()
 	else if (m_Input->IsKeyDown('2'))
 	{
 		m_Graphics->SetBrightness(0.5f);
+	}
+	else if (m_Input->IsKeyDown('3'))
+	{
+		m_Graphics->SetTextureFilter(0);
+	}
+	else if (m_Input->IsKeyDown('4'))
+	{
+		m_Graphics->SetTextureFilter(1);
+	}
+	else if (m_Input->IsKeyDown('5'))
+	{
+		m_Graphics->SetTextureFilter(2);
 	}
 
 	// Do the frame processing for the graphics object.

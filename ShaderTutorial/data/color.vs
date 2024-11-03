@@ -15,39 +15,10 @@ cbuffer MatrixBuffer
 	matrix worldMatrix;
 	matrix viewMatrix;
 	matrix projectionMatrix;
-    float time; // 매 순간 회전하게 하기 위해 설정한 시간 값
+    float time;
+    float modelID;
 };
 
-//회전 계산을 위한 행렬들 (각각 x, y, z축)
-matrix RotateX(float angle)
-{
-    return matrix(
-        1, 0, 0, 0,
-        0, cos(angle), sin(angle), 0,
-        0, -sin(angle), cos(angle), 0,
-        0, 0, 0, 1
-    );
-}
-
-matrix RotateY(float angle)
-{
-    return matrix(
-        cos(angle), 0, -sin(angle), 0,
-        0, 1, 0, 0,
-        sin(angle), 0, cos(angle), 0,
-        0, 0, 0, 1
-    );
-}
-
-matrix RotateZ(float angle)
-{
-    return matrix(
-        cos(angle), sin(angle), 0, 0,
-        -sin(angle), cos(angle), 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    );
-}
 
 //////////////
 // TYPEDEFS //
@@ -88,29 +59,6 @@ PixelInputType ColorVertexShader(VertexInputType input)
 
 	// Change the position vector to be 4 units for proper matrix calculations.
     input.position.w = 1.0f;
-
-    // 회전각 계산
-    float angle = time * 1.0f; // 매 순간마다 얼만큼 돌아가는지가 각도니까 이러함.
-
-    // x좌표 범위로 회전 적용 구분
-    if (input.position.x >= -5.0f && input.position.x <= -3.0f)
-    {
-        // x축 회전
-        matrix rotationMatrix = RotateX(angle);
-        input.position = mul(input.position, rotationMatrix);
-    }
-    else if (input.position.x >= -1.0f && input.position.x <= 0.5f)
-    {
-        // y축 회전
-        matrix rotationMatrix = RotateY(angle);
-        input.position = mul(input.position, rotationMatrix);
-    }
-    else if (input.position.x >= 3.0f && input.position.x <= 4.75f)
-    {
-        // z축 회전
-        matrix rotationMatrix = RotateZ(angle);
-        input.position = mul(input.position, rotationMatrix);
-    }
 
 	// Calculate the position of the vertex against the world, view, and projection matrices.
     output.position = mul(input.position, worldMatrix);

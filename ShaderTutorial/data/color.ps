@@ -12,12 +12,6 @@ struct PixelInputType
     float4 color : COLOR;
 };
 
-cbuffer Brightness
-{
-    float brightness;
-    float3 padding;
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pixel Shader
@@ -26,5 +20,5 @@ cbuffer Brightness
 ////////////////////////////////////////////////////////////////////////////////
 float4 ColorPixelShader(PixelInputType input) : SV_TARGET
 {
-    return input.color * brightness;
+    return input.color;
 }

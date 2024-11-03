@@ -8,13 +8,17 @@ GraphicsClass::GraphicsClass()
 {
 	m_D3D = 0;
 	m_Camera = 0;
-	m_Model = 0;
 	m_ColorShader = 0;
+	m_TextureShader = 0;
+	for (int i = 0; i < 4; i++)
+	{
+		m_Model[i] = 0;
+	}
 
-	// 기본은 원래대로 회색
-	m_bgColor[0] = 0.5f;
-	m_bgColor[1] = 0.5f;
-	m_bgColor[2] = 0.5f;
+	// 기본값 검은색
+	m_bgColor[0] = 0.0f;
+	m_bgColor[1] = 0.0f;
+	m_bgColor[2] = 0.0f;
 	m_bgColor[3] = 1.0f;
 
 	m_brightness = 1.0f;
@@ -63,21 +67,40 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Set the initial position of the camera.
-	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
-	
-	// Create the model object.
-	m_Model = new ModelClass;
-	if(!m_Model)
-	{
-		return false;
-	}
+	m_Camera->SetPosition(0.0f, 1.0f, -6.0f);
 
-	// Initialize the model object.
-	result = m_Model->Initialize(m_D3D->GetDevice());
-	if(!result)
+	for (int i = 0; i < 4; i++)
 	{
-		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
-		return false;
+		// Create the model object.
+		m_Model[i] = new ModelClass;
+		if (!m_Model)
+		{
+			return false;
+		}
+
+		// Initialize the model object.
+		if (i == 0)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/jeep.obj", L"./data/jeep.dds");
+		}
+		else if (i == 1)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/nissan.obj", L"./data/nissan.dds");
+		}
+		else if (i == 2)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/ford.obj", L"./data/ford.dds");
+		}
+		else
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/land.obj", L"./data/land.dds");
+		}
+
+		if (!result)
+		{
+			MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+			return false;
+		}
 	}
 
 	// Create the color shader object.
@@ -92,6 +115,21 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the color shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	// Create the texture shader object.
+	m_TextureShader = new TextureShaderClass;
+	if (!m_TextureShader)
+	{
+		return false;
+	}
+
+	// Initialize the texture shader object.
+	result = m_TextureShader->Initialize(m_D3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -117,12 +155,23 @@ void GraphicsClass::Shutdown()
 		m_ColorShader = 0;
 	}
 
-	// Release the model object.
-	if(m_Model)
+	// Release the texture shader object.
+	if (m_TextureShader)
 	{
-		m_Model->Shutdown();
-		delete m_Model;
-		m_Model = 0;
+		m_TextureShader->Shutdown();
+		delete m_TextureShader;
+		m_TextureShader = 0;
+	}
+
+	// Release the model object.
+	for (int i = 0; i < 4; i++)
+	{
+		if (m_Model[i])
+		{
+			m_Model[i]->Shutdown();
+			delete m_Model[i];
+			m_Model[i] = 0;
+		}
 	}
 
 	// Release the camera object.
@@ -198,10 +247,16 @@ void GraphicsClass::SetBackFaceCulling(bool enable)
 	}
 }
 
+void GraphicsClass::SetTextureFilter(int filterMode)
+{
+	m_TextureShader->SetTextureFilter(m_D3D->GetDevice(), filterMode);
+}
+
 
 bool GraphicsClass::Render()
 {
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	XMMATRIX viewMatrix, projectionMatrix;
+	XMMATRIX worldMatrix[4];
 	bool result;
 
 	static float time = 0.0f;
@@ -215,7 +270,10 @@ bool GraphicsClass::Render()
 
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Camera->GetViewMatrix(viewMatrix);
-	m_D3D->GetWorldMatrix(worldMatrix);
+	for (int i = 0; i < 4; i++)
+	{
+		m_D3D->GetWorldMatrix(worldMatrix[i]);
+	}
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 
 	// 
@@ -224,15 +282,24 @@ bool GraphicsClass::Render()
 	//
 	m_D3D->SetBackFaceCulling(m_backFaceCulling);
 
-	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_Model->Render(m_D3D->GetDeviceContext());
+	// Rotate the world matrix by the rotation value so that the triangle will spin.
+	worldMatrix[0] = XMMatrixTranslation(-2.2f, 0.0f, 0.0f);
+	worldMatrix[1] = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	worldMatrix[2] = XMMatrixTranslation(2.2f, 0.0f, 0.0f);
+	worldMatrix[3] = XMMatrixScaling(5.0f, -1.0f, 10.0f) * XMMatrixTranslation(0.0f, 0.0f, -6.0f);
 
-	// Render the model using the color shader.
-	result = m_ColorShader->Render(m_D3D->GetDeviceContext(), m_Model->GetIndexCount(), 
-		worldMatrix, viewMatrix, projectionMatrix, m_brightness, time);
-	if(!result)
+	for (int i = 0; i < 4; i++)
 	{
-		return false;
+		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+		m_Model[i]->Render(m_D3D->GetDeviceContext());
+
+		// Render the model using the texture shader.
+		result = m_TextureShader->Render(m_D3D->GetDeviceContext(), m_Model[i]->GetIndexCount(),
+			worldMatrix[i], viewMatrix, projectionMatrix, m_Model[i]->GetTexture(), time, static_cast<float>(i));
+		if (!result)
+		{
+			return false;
+		}
 	}
 
 	// Present the rendered scene to the screen.

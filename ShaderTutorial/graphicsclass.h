@@ -13,6 +13,7 @@
 #include "modelclass.h"
 #include "colorshaderclass.h"
 #include "inputclass.h"
+#include "textureshaderclass.h"
 
 
 /////////////
@@ -41,6 +42,7 @@ public:
 	void SetBrightness(float);
 	void SetRenderMode(bool);
 	void SetBackFaceCulling(bool);
+	void SetTextureFilter(int);
 
 private:
 	bool Render();
@@ -48,8 +50,9 @@ private:
 private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
-	ModelClass* m_Model;
+	ModelClass* m_Model[4];
 	ColorShaderClass* m_ColorShader;
+	TextureShaderClass* m_TextureShader;
 	InputClass* m_Input;
 
 	float m_bgColor[4];
