@@ -42,7 +42,7 @@ public:
 	bool InitializeRasterizer();
 	bool InitializeViewport(int screenWidth, int screenHeight);
 	void Shutdown();
-	
+
 	void BeginScene(float, float, float, float);
 	void EndScene();
 
@@ -59,6 +59,10 @@ public:
 	void SetBackFaceCulling(bool);
 	void UpdateRasterizerState();
 
+	void TurnZBufferOn();
+	void TurnZBufferOff();
+	void ClearDepthBuffer();
+
 private:
 	bool m_vsync_enabled;
 
@@ -72,10 +76,10 @@ private:
 
 	ID3D11Device* m_device;
 	ID3D11DeviceContext* m_deviceContext;
-	
+
 	IDXGISwapChain* m_swapChain;
 	ID3D11RenderTargetView* m_renderTargetView;
-	
+
 	ID3D11Texture2D* m_depthStencilBuffer;
 	ID3D11DepthStencilState* m_depthStencilState;
 	ID3D11DepthStencilView* m_depthStencilView;
@@ -89,6 +93,8 @@ private:
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthoMatrix;
+
+	ID3D11DepthStencilState* m_depthDisabledStencilState;
 };
 
 #endif

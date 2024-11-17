@@ -31,6 +31,7 @@ struct VertexInputType
 {
     float4 position : POSITION;
     float2 tex : TEXCOORD0;
+    uint instanceID : SV_InstanceID;
 };
 
 struct PixelInputType
@@ -49,6 +50,8 @@ PixelInputType TextureVertexShader(VertexInputType input)
     float4x4 rotationMatrix;
     float rotationAngle;
     
+    input.position.w = 1.0f;
+
     if(modelID < 3.0f)  // 자동차 모델
     {
        rotationAngle = time * 1.0f;
@@ -65,14 +68,21 @@ PixelInputType TextureVertexShader(VertexInputType input)
         );
         
         // 회전 적용
-        input.position.w = 1.0f;
+        //input.position.w = 1.0f;
         float4 rotatedPosition = mul(input.position, rotationMatrix);
         output.position = mul(rotatedPosition, worldMatrix);
+    }
+    else if(modelID == 3.0f)
+    {
+        float xOffset = 0.4f * input.instanceID;
+        input.position.x += xOffset;
+
+        output.position = mul(input.position, worldMatrix);
     }
     else  // 바닥 모델
     {
         // 회전 없이 적용
-        input.position.w = 1.0f;
+        //input.position.w = 1.0f;
         output.position = mul(input.position, worldMatrix);
     }
 

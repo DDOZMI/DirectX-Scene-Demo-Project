@@ -76,10 +76,10 @@ private:
 
 private:
 	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
-	int m_vertexCount, m_indexCount, m_textureCount, m_normalCount, m_faceCount;
 	TextureClass* m_Texture;
-
 	ModelType* m_model;
+
+	int m_vertexCount, m_indexCount, m_textureCount, m_normalCount, m_faceCount;
 };
 
 #endif

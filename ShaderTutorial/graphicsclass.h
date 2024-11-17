@@ -14,6 +14,7 @@
 #include "colorshaderclass.h"
 #include "inputclass.h"
 #include "textureshaderclass.h"
+#include "bitmapclass.h"
 
 
 /////////////
@@ -50,10 +51,11 @@ private:
 private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
-	ModelClass* m_Model[4];
+	ModelClass* m_Model[5];
 	ColorShaderClass* m_ColorShader;
 	TextureShaderClass* m_TextureShader;
 	InputClass* m_Input;
+	BitmapClass* m_Bitmap;
 
 	float m_bgColor[4];
 	float m_brightness;

@@ -55,6 +55,8 @@ private:
 	void RenderShader(ID3D11DeviceContext*, int);
 	bool CreateSamplerState(ID3D11Device*, int);
 
+	bool SetupShaderResources(ID3D11DeviceContext*, XMMATRIX, XMMATRIX, XMMATRIX, ID3D11ShaderResourceView*, float, float);
+
 private:
 	ID3D11VertexShader* m_vertexShader;
 	ID3D11PixelShader* m_pixelShader;

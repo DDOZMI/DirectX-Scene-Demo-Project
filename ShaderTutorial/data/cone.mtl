@@ -1,0 +1,12 @@
+# Blender 4.0.2 MTL File: 'None'
+# www.blender.org
+
+newmtl blinn1
+Ns 63.117920
+Ka 0.500000 0.500000 0.500000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 3
+map_Kd C:/Users/justi/Desktop/LH폴더/학습/그래픽스 OBJ변환/cone/source/0660621b196e419c84829db0ced6bba9/Cone_Diffuse.png
+map_d C:/Users/justi/Desktop/LH폴더/학습/그래픽스 OBJ변환/cone/source/0660621b196e419c84829db0ced6bba9/Cone_Diffuse.png

@@ -6,11 +6,13 @@
 
 ModelClass::ModelClass()
 {
-	m_vertexBuffer = 0;
-	m_indexBuffer = 0;
-	m_Texture = 0;
-	m_model = 0;
+	m_vertexBuffer = nullptr;
+	m_indexBuffer = nullptr;
+	m_Texture = nullptr;
+	m_model = nullptr;
 
+	m_vertexCount = 0;
+	m_indexCount = 0;
 	m_textureCount = 0;
 	m_normalCount = 0;
 	m_faceCount = 0;
