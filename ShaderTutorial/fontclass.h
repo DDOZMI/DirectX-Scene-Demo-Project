@@ -7,6 +7,7 @@
 #include <d2d1_1.h>
 #include <dwrite_1.h>
 #include <d3d11.h>
+#include "d3dclass.h"
 
 using namespace D2D1;
 
@@ -16,13 +17,12 @@ public:
     FontClass(const FontClass&);
     ~FontClass();
 
-    bool Initialize(ID3D11Device* device, HWND hwnd, int, int);
+    bool Initialize(ID3D11Device* device, D3DClass* d3dClass, HWND hwnd, int screenWidth, int screenHeight);
     void Shutdown();
     bool Render();
 
 private:
-    ID2D1Factory* m_d2dFactory;
-    ID2D1HwndRenderTarget* m_renderTarget;
+    ID2D1RenderTarget* m_renderTarget;
     IDWriteFactory* m_writeFactory;
     IDWriteTextFormat* m_textFormat;
     ID2D1SolidColorBrush* m_brush;

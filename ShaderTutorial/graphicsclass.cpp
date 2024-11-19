@@ -157,7 +157,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	{
 		return false;
 	}
-	result = m_Font->Initialize(m_D3D->GetDevice(), hwnd, screenWidth, screenHeight);
+	result = m_Font->Initialize(m_D3D->GetDevice(), m_D3D, hwnd, screenWidth, screenHeight);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the font object.", L"Error", MB_OK);

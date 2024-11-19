@@ -19,6 +19,7 @@
 #include <d3dcommon.h>
 #include <d3d11.h>
 #include <directxmath.h>
+#include <d2d1_1.h>
 
 #include "AlignedAllocationPolicy.h"
 
@@ -30,6 +31,10 @@ using namespace DirectX;
 ////////////////////////////////////////////////////////////////////////////////
 class D3DClass : public AlignedAllocationPolicy<16>
 {
+protected:
+	IDXGIDevice* m_dxgiDevice;
+	ID2D1Factory* m_d2dFactory;
+	ID2D1RenderTarget* m_d2dRenderTarget;
 public:
 	D3DClass();
 	D3DClass(const D3DClass&);
@@ -46,9 +51,6 @@ public:
 	void BeginScene(float, float, float, float);
 	void EndScene();
 
-	ID3D11Device* GetDevice();
-	ID3D11DeviceContext* GetDeviceContext();
-
 	void GetProjectionMatrix(XMMATRIX&);
 	void GetWorldMatrix(XMMATRIX&);
 	void GetOrthoMatrix(XMMATRIX&);
@@ -63,7 +65,9 @@ public:
 	void TurnZBufferOff();
 	void ClearDepthBuffer();
 
-	IDXGISwapChain* GetSwapChain();
+	ID3D11Device* GetDevice();
+	ID3D11DeviceContext* GetDeviceContext();
+	ID2D1RenderTarget* GetD2DRenderTarget();
 
 private:
 	bool m_vsync_enabled;
@@ -84,6 +88,7 @@ private:
 
 	ID3D11Texture2D* m_depthStencilBuffer;
 	ID3D11DepthStencilState* m_depthStencilState;
+	ID3D11DepthStencilState* m_depthDisabledStencilState;
 	ID3D11DepthStencilView* m_depthStencilView;
 
 	ID3D11RasterizerState* m_rasterStateSolid;
@@ -95,8 +100,6 @@ private:
 	XMMATRIX m_projectionMatrix;
 	XMMATRIX m_worldMatrix;
 	XMMATRIX m_orthoMatrix;
-
-	ID3D11DepthStencilState* m_depthDisabledStencilState;
 };
 
 #endif

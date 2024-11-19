@@ -2,7 +2,6 @@
 
 FontClass::FontClass()
 {
-    m_d2dFactory = nullptr;
     m_renderTarget = nullptr;
     m_writeFactory = nullptr;
     m_textFormat = nullptr;
@@ -10,24 +9,29 @@ FontClass::FontClass()
     m_hwnd = nullptr;
 }
 
+FontClass::FontClass(const FontClass&)
+{
+
+}
+
 FontClass::~FontClass()
 {
 
 }
 
-bool FontClass::Initialize(ID3D11Device* device, HWND hwnd, int screenWidth, int screenHeight)
+bool FontClass::Initialize(ID3D11Device* device, D3DClass* d3dClass, HWND hwnd, int screenWidth, int screenHeight)
 {
     HRESULT result;
     m_hwnd = hwnd;
 
-    // D2D Factory
-    result = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_d2dFactory);
-    if (FAILED(result))
+    // Get D2D render target from D3DClass
+    m_renderTarget = d3dClass->GetD2DRenderTarget();
+    if (!m_renderTarget)
     {
         return false;
     }
 
-    // DirectWrite Factory
+    // Create DirectWrite factory
     result = DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED,
         __uuidof(IDWriteFactory),
         reinterpret_cast<IUnknown**>(&m_writeFactory));
@@ -36,7 +40,7 @@ bool FontClass::Initialize(ID3D11Device* device, HWND hwnd, int screenWidth, int
         return false;
     }
 
-    // Text Format
+    // Create text format
     result = m_writeFactory->CreateTextFormat(
         L"Arial",
         nullptr,
@@ -46,19 +50,6 @@ bool FontClass::Initialize(ID3D11Device* device, HWND hwnd, int screenWidth, int
         20.0f,
         L"en-us",
         &m_textFormat);
-    if (FAILED(result))
-    {
-        return false;
-    }
-
-    // Get window size
-    D2D1_SIZE_U size = SizeU(screenWidth, screenHeight);
-
-    // Create render target
-    result = m_d2dFactory->CreateHwndRenderTarget(
-        RenderTargetProperties(),
-        HwndRenderTargetProperties(hwnd, size),
-        &m_renderTarget);
     if (FAILED(result))
     {
         return false;
@@ -90,30 +81,17 @@ void FontClass::Shutdown()
         m_textFormat = nullptr;
     }
 
-    if (m_renderTarget)
-    {
-        m_renderTarget->Release();
-        m_renderTarget = nullptr;
-    }
-
     if (m_writeFactory)
     {
         m_writeFactory->Release();
         m_writeFactory = nullptr;
     }
 
-    if (m_d2dFactory)
-    {
-        m_d2dFactory->Release();
-        m_d2dFactory = nullptr;
-    }
+    m_renderTarget = nullptr;
 }
 
 bool FontClass::Render()
 {
-    m_renderTarget->BeginDraw();
-    m_renderTarget->SetTransform(Matrix3x2F::Identity());
-
     D2D1_SIZE_F size = m_renderTarget->GetSize();
     D2D1_RECT_F rect = RectF(
         size.width - 550.0f,
@@ -128,5 +106,5 @@ bool FontClass::Render()
         rect,
         m_brush);
 
-    return SUCCEEDED(m_renderTarget->EndDraw());
+    return true;
 }

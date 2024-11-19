@@ -178,93 +178,74 @@ bool D3DClass::InitializeSwapBuffer(int screenWidth, int screenHeight, HWND hwnd
 {
 	HRESULT result;
 
+	// 기본 디바이스와 스왑체인 생성
 	DXGI_SWAP_CHAIN_DESC swapChainDesc;
-	D3D_FEATURE_LEVEL featureLevel;
-	ID3D11Texture2D* backBufferPtr;
-
-	// Initialize the swap chain description.
 	ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
 
-	// Set to a single back buffer.
 	swapChainDesc.BufferCount = 1;
-
-	// Set the width and height of the back buffer.
 	swapChainDesc.BufferDesc.Width = screenWidth;
 	swapChainDesc.BufferDesc.Height = screenHeight;
-
-	// Set regular 32-bit surface for the back buffer.
-	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-	// Set the refresh rate of the back buffer.
-	if (m_vsync_enabled)
-	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = m_refreshRateNumerator;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = m_refreshRateDenominator;
-	}
-	else
-	{
-		swapChainDesc.BufferDesc.RefreshRate.Numerator = 0;
-		swapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
-	}
-
-	// Set the usage of the back buffer.
+	swapChainDesc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // Direct2D 호환성을 위한 설정
+	swapChainDesc.BufferDesc.RefreshRate.Numerator = m_vsync_enabled ? m_refreshRateNumerator : 0;
+	swapChainDesc.BufferDesc.RefreshRate.Denominator = m_vsync_enabled ? m_refreshRateDenominator : 1;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-
-	// Set the handle for the window to render to.
 	swapChainDesc.OutputWindow = hwnd;
-
-	// Turn multisampling off.
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
-
-	// Set to full screen or windowed mode.
-	if (fullscreen)
-	{
-		swapChainDesc.Windowed = false;
-	}
-	else
-	{
-		swapChainDesc.Windowed = true;
-	}
-
-	// Set the scan line ordering and scaling to unspecified.
-	swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-	// Discard the back buffer contents after presenting.
+	swapChainDesc.Windowed = !fullscreen;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-	// Don't set the advanced flags.
-	swapChainDesc.Flags = 0;
+	D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
 
-	// Set the feature level to DirectX 11.
-	featureLevel = D3D_FEATURE_LEVEL_11_0;
+	// Direct2D 호환성을 위한 플래그 추가
+	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-	// Create the swap chain, Direct3D device, and Direct3D device context.
-	result = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, &featureLevel, 1,
-		D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, NULL, &m_deviceContext);
+	result = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, creationFlags,
+		&featureLevel, 1, D3D11_SDK_VERSION, &swapChainDesc, &m_swapChain, &m_device, nullptr, &m_deviceContext);
+	if (FAILED(result)) return false;
+
+	// 백버퍼 가져오기
+	ID3D11Texture2D* backBuffer;
+	result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+	if (FAILED(result)) return false;
+
+	// D3D 렌더타겟 뷰 생성
+	result = m_device->CreateRenderTargetView(backBuffer, nullptr, &m_renderTargetView);
 	if (FAILED(result))
 	{
+		backBuffer->Release();
 		return false;
 	}
 
-	// Get the pointer to the back buffer.
-	result = m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr);
+	// Direct2D Factory 생성
+	result = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &m_d2dFactory);
 	if (FAILED(result))
 	{
+		backBuffer->Release();
 		return false;
 	}
 
-	// Create the render target view with the back buffer pointer.
-	result = m_device->CreateRenderTargetView(backBufferPtr, NULL, &m_renderTargetView);
-	if (FAILED(result))
+	// Direct2D RenderTarget 생성
+	IDXGISurface* dxgiBackBuffer;
+	result = backBuffer->QueryInterface(__uuidof(IDXGISurface), (void**)&dxgiBackBuffer);
+	if (SUCCEEDED(result))
 	{
-		return false;
+		D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED));
+
+		result = m_d2dFactory->CreateDxgiSurfaceRenderTarget(
+			dxgiBackBuffer,
+			&props,
+			&m_d2dRenderTarget);
+
+		dxgiBackBuffer->Release();
 	}
 
-	// Release pointer to the back buffer as we no longer need it.
-	backBufferPtr->Release();
-	backBufferPtr = 0;
+	backBuffer->Release();
+
+	if (FAILED(result)) return false;
 
 	return true;
 }
@@ -507,48 +488,51 @@ void D3DClass::Shutdown()
 		m_swapChain = 0;
 	}
 
+	if (m_d2dRenderTarget)
+	{
+		m_d2dRenderTarget->Release();
+		m_d2dRenderTarget = nullptr;
+	}
+
+	if (m_d2dFactory)
+	{
+		m_d2dFactory->Release();
+		m_d2dFactory = nullptr;
+	}
+
 	return;
 }
 
 
 void D3DClass::BeginScene(float red, float green, float blue, float alpha)
 {
-	float color[4];
-
-
-	// Setup the color to clear the buffer to.
-	color[0] = red;
-	color[1] = green;
-	color[2] = blue;
-	color[3] = alpha;
-
-	// Clear the back buffer.
+	float color[4] = { red, green, blue, alpha };
 	m_deviceContext->ClearRenderTargetView(m_renderTargetView, color);
-
-	// Clear the depth buffer.
 	m_deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-	return;
+	if (m_d2dRenderTarget)
+	{
+		m_d2dRenderTarget->BeginDraw();
+	}
 }
 
-
+// EndScene 수정
 void D3DClass::EndScene()
 {
-	// Present the back buffer to the screen since rendering is complete.
+	if (m_d2dRenderTarget)
+	{
+		m_d2dRenderTarget->EndDraw();
+	}
+
 	if (m_vsync_enabled)
 	{
-		// Lock to screen refresh rate.
 		m_swapChain->Present(1, 0);
 	}
 	else
 	{
-		// Present as fast as possible.
 		m_swapChain->Present(0, 0);
 	}
-
-	return;
 }
-
 
 ID3D11Device* D3DClass::GetDevice()
 {
@@ -638,7 +622,7 @@ void D3DClass::ClearDepthBuffer()
 	m_deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
-IDXGISwapChain* D3DClass::GetSwapChain()
+ID2D1RenderTarget* D3DClass::GetD2DRenderTarget()
 {
-	return m_swapChain;
+	return m_d2dRenderTarget;
 }
