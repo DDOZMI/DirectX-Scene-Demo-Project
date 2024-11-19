@@ -11,10 +11,11 @@
 #include "d3dclass.h"
 #include "cameraclass.h"
 #include "modelclass.h"
-#include "colorshaderclass.h"
+#include "lightshaderclass.h"
+#include "lightclass.h"
 #include "inputclass.h"
-#include "textureshaderclass.h"
 #include "bitmapclass.h"
+#include "fontclass.h"
 
 
 /////////////
@@ -44,6 +45,9 @@ public:
 	void SetRenderMode(bool);
 	void SetBackFaceCulling(bool);
 	void SetTextureFilter(int);
+	void SetLightingMode(int);
+	void SetLightColor(float, float, float);
+	void SetLightBrightness(bool);
 
 private:
 	bool Render();
@@ -52,15 +56,18 @@ private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
 	ModelClass* m_Model[5];
-	ColorShaderClass* m_ColorShader;
-	TextureShaderClass* m_TextureShader;
+	LightShaderClass* m_LightShader;
+	LightClass* m_Light;
 	InputClass* m_Input;
 	BitmapClass* m_Bitmap;
+	FontClass* m_Font;
 
 	float m_bgColor[4];
 	float m_brightness;
 	bool m_wireframeMode;
 	bool m_backFaceCulling;
+	int m_lightingMode;
+	float m_lightBrightness;
 };
 
 #endif

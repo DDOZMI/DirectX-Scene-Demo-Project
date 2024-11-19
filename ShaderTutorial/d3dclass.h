@@ -63,6 +63,8 @@ public:
 	void TurnZBufferOff();
 	void ClearDepthBuffer();
 
+	IDXGISwapChain* GetSwapChain();
+
 private:
 	bool m_vsync_enabled;
 

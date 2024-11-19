@@ -15,7 +15,12 @@ D3DClass::D3DClass()
 	m_renderTargetView = nullptr;
 	m_depthStencilBuffer = nullptr;
 	m_depthStencilState = nullptr;
+	m_depthDisabledStencilState = nullptr;
 	m_depthStencilView = nullptr;
+	m_rasterStateSolid = nullptr;
+	m_rasterStateWireframe = nullptr;
+	m_rasterStateSolidNoCull = nullptr;
+	m_rasterStateWireframeNoCull = nullptr;
 }
 
 
@@ -631,4 +636,9 @@ void D3DClass::TurnZBufferOff()
 void D3DClass::ClearDepthBuffer()
 {
 	m_deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+}
+
+IDXGISwapChain* D3DClass::GetSwapChain()
+{
+	return m_swapChain;
 }

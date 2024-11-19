@@ -22,7 +22,6 @@
 ///////////////////////
 #include "inputclass.h"
 #include "graphicsclass.h"
-#include "d3dclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +52,6 @@ private:
 
 	InputClass* m_Input;
 	GraphicsClass* m_Graphics;
-	D3DClass* m_D3D;
 };
 
 

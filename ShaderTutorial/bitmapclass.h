@@ -29,7 +29,8 @@ private:
 	struct VertexType
 	{
 		XMFLOAT3 position;
-	    XMFLOAT2 texture;
+		XMFLOAT2 texture;
+		XMFLOAT3 normal;
 	};
 
 public:
@@ -54,7 +55,7 @@ private:
 	void ReleaseTexture();
 
 private:
-	ID3D11Buffer *m_vertexBuffer, *m_indexBuffer;
+	ID3D11Buffer* m_vertexBuffer, * m_indexBuffer;
 	TextureClass* m_Texture;
 	int m_vertexCount, m_indexCount;
 	int m_screenWidth, m_screenHeight;
