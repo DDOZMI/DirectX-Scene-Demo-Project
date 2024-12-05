@@ -75,7 +75,7 @@ bool LightShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount
 	deviceContext->PSSetSamplers(0, 1, &m_sampleState);
 
 	// modelID에 따른 렌더링 방식 선택
-	if (modelID == 3.0f)
+	if (modelID == 9.0f || modelID == 10.0f)
 	{
 		// 콘 모델은 인스턴싱 (10개)
 		deviceContext->DrawIndexedInstanced(indexCount, 10, 0, 0, 0);

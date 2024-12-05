@@ -10,10 +10,12 @@ GraphicsClass::GraphicsClass()
 	m_Camera = nullptr;
 	m_LightShader = nullptr;
 	m_Light = nullptr;
-	for (int i = 0; i < 5; i++) { m_Model[i] = nullptr; }
+	for (int i = 0; i < 12; i++) { m_Model[i] = nullptr; }
 	m_Input = nullptr;
 	m_Bitmap = nullptr;
 	m_Font = nullptr;
+	m_Cpu = nullptr;
+	m_Fps = nullptr;
 
 	// 기본값 검은색 - 배경 사용으로 가려져서 의미없음
 	m_bgColor[0] = 0.0f;
@@ -21,9 +23,12 @@ GraphicsClass::GraphicsClass()
 	m_bgColor[2] = 0.0f;
 	m_bgColor[3] = 1.0f;
 
+	// 폴리곤 색상 밝기도 더이상 안씀
 	m_brightness = 1.0f;
 	m_lightBrightness = 1.0f;
+
 	m_lightingMode = 0;
+	m_totalPolygons = 0;
 
 	m_wireframeMode = false;
 	m_backFaceCulling = true;
@@ -44,6 +49,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 {
 	bool result;
 
+	/*vector<wstring> groundTextures;
+	groundTextures.push_back(L"")*/
 
 	// Create the Direct3D object.
 	m_D3D = new D3DClass;
@@ -66,12 +73,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	{
 		return false;
 	}
-
 	// 카메라 포지션 설정
-	m_Camera->SetPosition(0.0f, 1.0f, -8.0f);
+	m_Camera->SetPosition(0.0f, 4.5f, -15.0f);
 
 	// 모델 오브젝트를 담은 배열 생성
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 12; i++)
 	{
 		// 각각의 모델 오브젝트 생성
 		m_Model[i] = new ModelClass;
@@ -83,23 +89,47 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		// 모델 오브젝트 초기화
 		if (i == 0)
 		{
-			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/jeep.obj", L"./data/jeep.dds");
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/por.obj", L"./data/por.dds");
 		}
 		else if (i == 1)
 		{
-			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/honda.obj", L"./data/honda.dds");
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/SLR.obj", L"./data/SLR.dds");
 		}
 		else if (i == 2)
 		{
-			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/lamborghini.obj", L"./data/lamborghini.dds");
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/aventador.obj", L"./data/aventador.dds");
 		}
 		else if (i == 3)
 		{
-			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/cone.obj", L"./data/cone.dds");
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/mustang.obj", L"./data/mustang.dds");
+		}
+		else if (i == 4)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/tesla.obj", L"./data/tesla.dds");
+		}
+		else if (i == 5)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/E46.obj", L"./data/E46.dds");
+		}
+		else if (i == 6)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/honda.obj", L"./data/honda.dds");
+		}
+		else if (i == 7)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/finish.obj", L"./data/finish.dds");
+		}
+		else if (i == 8)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/light.obj", L"./data/light.dds");
+		}
+		else if (i == 9 || i == 10)
+		{
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/flag.obj", L"./data/flag.dds");
 		}
 		else
 		{
-			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/land1.obj", L"./data/land.dds");
+			result = m_Model[i]->Initialize(m_D3D->GetDevice(), L"./data/track.obj", L"./data/track.dds");
 		}
 
 		if (!result)
@@ -107,7 +137,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 			MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
 			return false;
 		}
+
+		if (i == 3)
+		{
+			m_totalPolygons += static_cast<unsigned int>((m_Model[i]->GetIndexCount() / 3) * 10); // 3번 모델만 10개 인스턴싱
+		}
+		else
+		{
+			m_totalPolygons += static_cast<unsigned int>(m_Model[i]->GetIndexCount()) / 3;
+		}
 	}
+
 
 	m_Bitmap = new BitmapClass;
 	if (!m_Bitmap)
@@ -116,7 +156,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the bitmap object.
-	result = m_Bitmap->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/wall.dds", screenWidth, screenHeight - 220);
+	result = m_Bitmap->Initialize(m_D3D->GetDevice(), screenWidth, screenHeight, L"./data/sky.dds", screenWidth, screenHeight - 220);
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
@@ -146,9 +186,9 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// 라이트 오브젝트 초기화 (라이팅 설정값)
-	m_Light->SetAmbientColor(0.15f, 0.15f, 0.15f, 1.0f);
+	m_Light->SetAmbientColor(0.25f, 0.25f, 0.25f, 1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetDirection(1.0f, 0.4f, 1.0f);
+	m_Light->SetDirection(1.0f, 1.0f, -1.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(16.0f);
 
@@ -158,11 +198,26 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 	result = m_Font->Initialize(m_D3D->GetDevice(), m_D3D, hwnd, screenWidth, screenHeight);
-	if (!result)
+	if(!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the font object.", L"Error", MB_OK);
 		return false;
 	}
+
+	m_Fps = new FpsClass;
+	if (!m_Fps)
+	{
+		return false;
+	}
+	m_Fps->Initialize();
+
+	// Create and initialize the cpu object.
+	m_Cpu = new CpuClass;
+	if (!m_Cpu)
+	{
+		return false;
+	}
+	m_Cpu->Initialize();
 
 	return true;
 }
@@ -171,13 +226,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 void GraphicsClass::Shutdown()
 {
 	// 모델 오브젝트 해제
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 12; i++)
 	{
 		if (m_Model[i])
 		{
 			m_Model[i]->Shutdown();
 			delete m_Model[i];
-			m_Model[i] = 0;
+			m_Model[i] = nullptr;
 		}
 	}
 
@@ -185,7 +240,7 @@ void GraphicsClass::Shutdown()
 	if (m_Camera)
 	{
 		delete m_Camera;
-		m_Camera = 0;
+		m_Camera = nullptr;
 	}
 
 	// Release the D3D object.
@@ -193,7 +248,7 @@ void GraphicsClass::Shutdown()
 	{
 		m_D3D->Shutdown();
 		delete m_D3D;
-		m_D3D = 0;
+		m_D3D = nullptr;
 	}
 
 	// 비트맵 오브젝트 해제
@@ -201,14 +256,14 @@ void GraphicsClass::Shutdown()
 	{
 		m_Bitmap->Shutdown();
 		delete m_Bitmap;
-		m_Bitmap = 0;
+		m_Bitmap = nullptr;
 	}
 
 	// Release the light object.
 	if (m_Light)
 	{
 		delete m_Light;
-		m_Light = 0;
+		m_Light = nullptr;
 	}
 
 	// Release the light shader object.
@@ -216,14 +271,14 @@ void GraphicsClass::Shutdown()
 	{
 		m_LightShader->Shutdown();
 		delete m_LightShader;
-		m_LightShader = 0;
+		m_LightShader = nullptr;
 	}
 
 	// Release the input object.
 	if (m_Input)
 	{
 		delete m_Input;
-		m_Input = 0;
+		m_Input = nullptr;
 	}
 
 	if (m_Font)
@@ -233,12 +288,28 @@ void GraphicsClass::Shutdown()
 		m_Font = nullptr;
 	}
 
+	if (m_Fps)
+	{
+		delete m_Fps;
+		m_Fps = nullptr;
+	}
+
+	if (m_Cpu)
+	{
+		m_Cpu->Shutdown();
+		delete m_Cpu;
+		m_Cpu = nullptr;
+	}
+
 	return;
 }
 
 bool GraphicsClass::Frame()
 {
 	bool result;
+
+	m_Fps->Frame();
+	m_Cpu->Frame();
 
 	// Render the graphics scene.
 	result = Render();
@@ -439,10 +510,15 @@ void GraphicsClass::SetLightBrightness(bool isPlus)
 	}
 }
 
+CameraClass* GraphicsClass::GetCamera() 
+{ 
+	return m_Camera; 
+}
+
 bool GraphicsClass::Render()
 {
 	XMMATRIX viewMatrix, projectionMatrix, orthoMatrix;
-	XMMATRIX worldMatrix[5];
+	XMMATRIX worldMatrix[13];
 	bool result;
 	static float time = 0.0f;
 	time += 0.01f;
@@ -455,7 +531,7 @@ bool GraphicsClass::Render()
 
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Camera->GetViewMatrix(viewMatrix);
-	for (int i = 0; i < 5; i++) { m_D3D->GetWorldMatrix(worldMatrix[i]); }
+	for (int i = 0; i < 13; i++) { m_D3D->GetWorldMatrix(worldMatrix[i]); }
 	m_D3D->GetProjectionMatrix(projectionMatrix);
 	m_D3D->GetOrthoMatrix(orthoMatrix);
 
@@ -466,11 +542,20 @@ bool GraphicsClass::Render()
 	m_D3D->SetBackFaceCulling(m_backFaceCulling);
 
 	// 각각의 월드 매트릭스 변형, 위치조정
-	worldMatrix[0] = XMMatrixTranslation(-2.2f, 0.0f, 0.5f);
-	worldMatrix[1] = XMMatrixTranslation(0.0f, -0.12f, 0.0f);
-	worldMatrix[2] = XMMatrixTranslation(2.2f, -0.07f, 0.0f);
-	worldMatrix[3] = XMMatrixTranslation(-1.8f, 0.0f, -4.0f);
-	worldMatrix[4] = XMMatrixScaling(10.0f, -10.0f, 30.0f) * XMMatrixTranslation(-0.0f, -0.0f, 150.0f);
+	worldMatrix[0] = XMMatrixTranslation(-1.1f, 0.0f, -2.4f); // 벤츠-맥라렌 SLR
+	worldMatrix[1] = XMMatrixTranslation(1.13f, 0.0f, -0.7f); // 람보르기니 아벤타도르
+	worldMatrix[2] = XMMatrixTranslation(1.13f, 0.0f, -4.4f); // 포르쉐 911
+	worldMatrix[3] = XMMatrixTranslation(-1.1f, 0.0f, -6.0f); // 포드 머스탱
+	worldMatrix[4] = XMMatrixTranslation(1.13f, 0.0f, -8.0f); // 테슬라 모델S
+	worldMatrix[5] = XMMatrixTranslation(-1.1f, 0.0f, -9.7f); // BMW E46
+	worldMatrix[6] = XMMatrixTranslation(1.13f, 0.0f, -11.7f); // 혼다 NSX
+	worldMatrix[7] = XMMatrixTranslation(0.0f, 0.0f, 1.15f); // 피니시 구조물
+	worldMatrix[8] = XMMatrixTranslation(2.5f, 0.0f, 15.0f); // 신호등
+	worldMatrix[9] = XMMatrixTranslation(-2.5f, 0.3f, -18.5f); // 깃발 인스턴스 1
+	worldMatrix[10] = XMMatrixTranslation(2.5f, 0.3f, -18.5f); // 깃발 인스턴스 2
+	worldMatrix[11] = XMMatrixScaling(1.0f, 1.0f, 1.0f) * XMMatrixTranslation(18.0f, -0.3f, 10.0f); // 트랙 모델
+	worldMatrix[12] = XMMatrixTranslation(0.0f, 0.0f, 0.0f); // 배경
+
 
 	m_D3D->TurnZBufferOff();
 
@@ -482,15 +567,15 @@ bool GraphicsClass::Render()
 	result = m_LightShader->Render(
 		m_D3D->GetDeviceContext(),
 		m_Bitmap->GetIndexCount(),
-		worldMatrix[0],
+		worldMatrix[12],
 		viewMatrix,
 		orthoMatrix,
 		m_Bitmap->GetTexture(),
 		m_Light->GetDirection(),
-		//XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), 이거 하면 배경에는 빛 적용 안됨.
-		//XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f),
-		m_Light->GetAmbientColor(),
-		m_Light->GetDiffuseColor(),
+		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), ///이거 하면 배경에는 빛 적용 안됨.
+		XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f),
+		/*m_Light->GetAmbientColor(),
+		m_Light->GetDiffuseColor(),*/
 		m_Camera->GetPosition(),
 		//XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f),
 		m_Light->GetSpecularColor(),
@@ -506,7 +591,7 @@ bool GraphicsClass::Render()
 	m_D3D->ClearDepthBuffer();
 
 	// Render the model using the light shader.
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 12; i++)
 	{
 		// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
 		m_Model[i]->Render(m_D3D->GetDeviceContext());
@@ -538,7 +623,11 @@ bool GraphicsClass::Render()
 		return false;
 	}
 
-	m_Font->Render();
+    m_Font->Render(static_cast<int>(m_totalPolygons), 
+		m_Fps->GetFps(), 
+		m_Cpu->GetCpuPercentage());
+
+	m_Font->RenderTitle();
 
 	// Present the rendered scene to the screen.
 	m_D3D->EndScene();

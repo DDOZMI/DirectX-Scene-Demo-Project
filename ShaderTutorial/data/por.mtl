@@ -1,0 +1,52 @@
+# Blender 4.0.2 MTL File: 'untitled.blend'
+# www.blender.org
+
+newmtl body.001
+Ns 278.318604
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+map_Kd C:/Users/shobh/Downloads/Porsche 993 Carrera 4s_al.png
+map_d C:/Users/shobh/AppData/Local/Colossal Order/Cities_Skylines/Addons/Import/Porsche 993 Carrera 4s_a.png
+
+newmtl lights.001
+Ns 670.593262
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+map_Kd C:/Users/shobh/Downloads/Porsche 993 Carrera 4s_al.png
+map_d C:/Users/shobh/AppData/Local/Colossal Order/Cities_Skylines/Addons/Import/Porsche 993 Carrera 4s_a.png
+
+newmtl rims.001
+Ns 547.833008
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+map_Kd C:/Users/shobh/Downloads/Porsche 993 Carrera 4s_al.png
+map_d C:/Users/shobh/AppData/Local/Colossal Order/Cities_Skylines/Addons/Import/Porsche 993 Carrera 4s_a.png
+
+newmtl tyres.001
+Ns 3.968004
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+map_Kd C:/Users/shobh/AppData/Local/Colossal Order/Cities_Skylines/Addons/Import/Porsche 993 Carrera 4s_d.png
+map_d C:/Users/shobh/AppData/Local/Colossal Order/Cities_Skylines/Addons/Import/Porsche 993 Carrera 4s_a.png
+
+newmtl windows.001
+Ns 1000.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+illum 1
+map_Kd C:/Users/shobh/Downloads/Porsche 993 Carrera 4s_al.png
+map_d C:/Users/shobh/AppData/Local/Colossal Order/Cities_Skylines/Addons/Import/Porsche 993 Carrera 4s_a.png

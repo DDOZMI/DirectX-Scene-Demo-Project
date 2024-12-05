@@ -13,6 +13,13 @@ CameraClass::CameraClass()
 	m_rotation.x = 0.0f;
 	m_rotation.y = 0.0f;
 	m_rotation.z = 0.0f;
+
+	moveSpeed = 0.4f;
+	rotationSpeed = 0.001f;
+
+	m_forward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	m_right = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	m_up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 }
 
 
@@ -56,42 +63,85 @@ XMFLOAT3 CameraClass::GetRotation()
 // This uses the position and rotation of the camera to build and to update the view matrix.
 void CameraClass::Render()
 {
-	XMVECTOR up, position, lookAt;
-	float yaw, pitch, roll;
-	XMMATRIX rotationMatrix;
+	XMVECTOR position = XMLoadFloat3(&m_position);
 
-	// Setup the vector that points upwards.
-	up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	// 회전 행렬 생성
+	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(
+		m_rotation.x, m_rotation.y, 0.0f);
 
-	// Setup the position of the camera in the world.
-	position = XMLoadFloat3(&m_position);
+	// 카메라 방향 벡터 업데이트
+	XMVECTOR lookAt = XMVector3TransformCoord(m_forward, rotationMatrix);
+	XMVECTOR up = XMVector3TransformCoord(m_up, rotationMatrix);
 
-	// Setup where the camera is looking by default.
-	lookAt = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	// 시점 위치 계산
+	XMVECTOR target = position + lookAt;
 
-	// Set the yaw (Y axis), pitch (X axis), and roll (Z axis) rotations in radians.
-	pitch = m_rotation.x * 0.0174532925f;
-	yaw   = m_rotation.y * 0.0174532925f;
-	roll  = m_rotation.z * 0.0174532925f;
-
-	// Create the rotation matrix from the yaw, pitch, and roll values.
-	rotationMatrix = XMMatrixRotationRollPitchYaw(pitch, yaw, roll);
-
-	// Transform the lookAt and up vector by the rotation matrix so the view is correctly rotated at the origin.
-	lookAt = XMVector3TransformCoord(lookAt, rotationMatrix);
-	up = XMVector3TransformCoord(up, rotationMatrix);
-
-	// Translate the rotated camera position to the location of the viewer.
-	lookAt = position + lookAt;
-
-	// Finally create the view matrix from the three updated vectors.
-	m_viewMatrix = XMMatrixLookAtLH(position, lookAt, up);
-
-	return;
+	// 뷰 행렬 생성
+	m_viewMatrix = XMMatrixLookAtLH(position, target, up);
 }
 
 
 void CameraClass::GetViewMatrix(XMMATRIX& viewMatrix)
 {
 	viewMatrix = m_viewMatrix;
+}
+
+void CameraClass::MoveForward(float speed)
+{
+	// 3인칭 프리 카메라로 하려면 아래 주석만 활성화
+	/*XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR forward = XMVector3Transform(m_forward,
+		XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, 0.0f));
+
+	position += forward * speed * moveSpeed;
+	XMStoreFloat3(&m_position, position);*/
+
+	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR forward = XMVector3Transform(m_forward,
+		XMMatrixRotationRollPitchYaw(0.0f, m_rotation.y, 0.0f));
+
+	forward = XMVectorSetY(forward, 0.0f);
+	forward = XMVector3Normalize(forward);
+
+	position += forward * speed * moveSpeed;
+
+	position = XMVectorSetY(position, m_position.y);
+
+	XMStoreFloat3(&m_position, position);
+}
+
+void CameraClass::MoveRight(float speed)
+{
+	/*XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR right = XMVector3Transform(m_right,
+		XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, 0.0f));
+
+	position += right * speed * moveSpeed;
+	XMStoreFloat3(&m_position, position);*/
+
+	XMVECTOR position = XMLoadFloat3(&m_position);
+	XMVECTOR right = XMVector3Transform(m_right,
+		XMMatrixRotationRollPitchYaw(0.0f, m_rotation.y, 0.0f));
+
+	right = XMVectorSetY(right, 0.0f);
+	right = XMVector3Normalize(right);
+
+	position += right * speed * moveSpeed;
+
+	position = XMVectorSetY(position, m_position.y);
+
+	XMStoreFloat3(&m_position, position);
+}
+
+void CameraClass::RotateByMouse(float mouseX, float mouseY)
+{
+	// 마우스 이동에 따른 회전
+	m_rotation.y += mouseX * rotationSpeed;
+	m_rotation.x += mouseY * rotationSpeed;
+
+	// 위/아래 회전 제한 (-89도 ~ +89도)
+	if (m_rotation.x > 1.5533f)  // 약 89도
+		m_rotation.x = 1.5533f;
+	if (m_rotation.x < -1.5533f) // 약 -89도
+		m_rotation.x = -1.5533f;
 }

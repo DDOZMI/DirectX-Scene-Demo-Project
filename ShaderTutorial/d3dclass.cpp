@@ -622,7 +622,7 @@ void D3DClass::ClearDepthBuffer()
 	m_deviceContext->ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
-ID2D1RenderTarget* D3DClass::GetD2DRenderTarget()
-{
-	return m_d2dRenderTarget;
+ID2D1RenderTarget* D3DClass::GetD2DRenderTarget() 
+{ 
+	return m_d2dRenderTarget; 
 }

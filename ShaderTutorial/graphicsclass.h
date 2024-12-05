@@ -16,7 +16,11 @@
 #include "inputclass.h"
 #include "bitmapclass.h"
 #include "fontclass.h"
+#include "fpsclass.h"
+#include "cpuclass.h"
+#include <vector>
 
+using namespace std;
 
 /////////////
 // GLOBALS //
@@ -49,18 +53,22 @@ public:
 	void SetLightColor(float, float, float);
 	void SetLightBrightness(bool);
 
+	CameraClass* GetCamera();
+
 private:
 	bool Render();
 
 private:
 	D3DClass* m_D3D;
 	CameraClass* m_Camera;
-	ModelClass* m_Model[5];
+	ModelClass* m_Model[12];
 	LightShaderClass* m_LightShader;
 	LightClass* m_Light;
 	InputClass* m_Input;
 	BitmapClass* m_Bitmap;
 	FontClass* m_Font;
+	CpuClass* m_Cpu;
+	FpsClass* m_Fps;
 
 	float m_bgColor[4];
 	float m_brightness;
@@ -68,6 +76,7 @@ private:
 	bool m_backFaceCulling;
 	int m_lightingMode;
 	float m_lightBrightness;
+	unsigned int m_totalPolygons;
 };
 
 #endif

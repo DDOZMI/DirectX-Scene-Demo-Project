@@ -14,7 +14,7 @@ FontClass::FontClass(const FontClass&)
 
 }
 
-FontClass::~FontClass()
+FontClass::~FontClass() 
 {
 
 }
@@ -47,7 +47,7 @@ bool FontClass::Initialize(ID3D11Device* device, D3DClass* d3dClass, HWND hwnd, 
         DWRITE_FONT_WEIGHT_REGULAR,
         DWRITE_FONT_STYLE_NORMAL,
         DWRITE_FONT_STRETCH_NORMAL,
-        20.0f,
+        20.0f, // 폰트 크기 담당
         L"en-us",
         &m_textFormat);
     if (FAILED(result))
@@ -90,21 +90,59 @@ void FontClass::Shutdown()
     m_renderTarget = nullptr;
 }
 
-bool FontClass::Render()
+bool FontClass::Render(int polygonCount, int fps, int cpu)
 {
     D2D1_SIZE_F size = m_renderTarget->GetSize();
     D2D1_RECT_F rect = RectF(
-        size.width - 550.0f,
-        10.0f,
+        20.0f,
+        20.0f,
         size.width - 10.0f,
         40.0f);
 
+    wstring text = L"Screen Resolution: 1600 x 800\n"
+                L"Objects: 14\n"
+                L"Polygons : " + to_wstring(polygonCount) + L"\n"
+                L"CPU: " + to_wstring(cpu) + L"%\n"
+                L"FPS: " + to_wstring(fps);
+
     m_renderTarget->DrawText(
-        L"Number of Objects: 14 (3 + 10 + 1)",
-        34,
+        text.c_str(),
+        text.length(),
         m_textFormat,
         rect,
         m_brush);
+
+    return true;
+}
+
+bool FontClass::RenderTitle()
+{
+    if (!m_renderTarget)
+    {
+        return false;
+    }
+
+    D2D1_SIZE_F size = m_renderTarget->GetSize();
+
+    D2D1_RECT_F rect = D2D1::RectF(
+        size.width - 300.0f,
+        20.0f,
+        size.width - 20.0f,
+        60.0f
+    );
+
+    wstring titleInfo = L"Title: Racing Track\n\n"
+        L"C077021 LEE DONGHOON\n\n"
+        L"W,A,S,D to move\n\n"
+        L"Mouse control to rotate camera";
+
+    m_renderTarget->DrawText(
+        titleInfo.c_str(),
+        titleInfo.length(),
+        m_textFormat,
+        rect,
+        m_brush
+    );
 
     return true;
 }

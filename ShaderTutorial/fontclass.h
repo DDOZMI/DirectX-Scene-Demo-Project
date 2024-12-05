@@ -7,8 +7,10 @@
 #include <d2d1_1.h>
 #include <dwrite_1.h>
 #include <d3d11.h>
+#include <string>
 #include "d3dclass.h"
 
+using namespace std;
 using namespace D2D1;
 
 class FontClass {
@@ -19,7 +21,9 @@ public:
 
     bool Initialize(ID3D11Device* device, D3DClass* d3dClass, HWND hwnd, int screenWidth, int screenHeight);
     void Shutdown();
-    bool Render();
+    bool Render(int, int, int);
+
+    bool RenderTitle();
 
 private:
     ID2D1RenderTarget* m_renderTarget;

@@ -33,10 +33,20 @@ public:
 	void Render();
 	void GetViewMatrix(XMMATRIX&);
 
+	void MoveForward(float);
+	void MoveRight(float);
+	void RotateByMouse(float, float);
+
 private:
 	XMFLOAT3 m_position;
 	XMFLOAT3 m_rotation;
 	XMMATRIX m_viewMatrix;
+
+	float moveSpeed;
+	float rotationSpeed;
+	XMVECTOR m_forward;
+	XMVECTOR m_right;
+	XMVECTOR m_up;
 };
 
 #endif

@@ -22,6 +22,9 @@
 ///////////////////////
 #include "inputclass.h"
 #include "graphicsclass.h"
+#include "cpuclass.h"
+#include "fpsclass.h"
+#include "timerclass.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +55,12 @@ private:
 
 	InputClass* m_Input;
 	GraphicsClass* m_Graphics;
+	CpuClass* m_Cpu;
+	FpsClass* m_Fps;
+	TimerClass* m_Timer;
+
+	POINT m_lastMousePos;
+	bool m_firstMouse;
 };
 
 
